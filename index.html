@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>磁铁大发现</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+    background: linear-gradient(180deg, #eef6fb 0%, #dcecf5 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  header {
+    text-align: center;
+    padding: 18px 16px 10px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #1e3a5f;
+    letter-spacing: 2px;
+  }
+  header p {
+    margin: 4px 0 0;
+    color: #5b7a99;
+    font-size: 0.95rem;
+  }
+
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 14px 0 6px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    border: 2px solid #bcd6e8;
+    background: #fff;
+    color: #2c5478;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .tab-btn.active {
+    background: #2c5478;
+    color: #fff;
+    border-color: #2c5478;
+    box-shadow: 0 6px 0 #1a3550;
+    transform: translateY(-2px);
+  }
+
+  .panel { display: none; max-width: 1100px; margin: 0 auto; padding: 10px 16px 60px; }
+  .panel.active { display: block; }
+
+  /* ===== 测一测 ===== */
+  #stage-wrap {
+    position: relative;
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 10px 30px rgba(30,58,95,0.12);
+    padding: 20px;
+    min-height: 430px;
+  }
+  .hint {
+    text-align: center;
+    color: #3d6690;
+    font-size: 1.05rem;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .shelf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: center;
+    padding: 20px 10px 60px;
+    min-height: 160px;
+    border-bottom: 3px dashed #d3e3ee;
+  }
+  .item {
+    width: 84px;
+    height: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f7fbfd;
+    border: 2px solid #d3e3ee;
+    border-radius: 16px;
+    cursor: default;
+    transition: box-shadow .15s;
+  }
+  .item .emoji { font-size: 2.6rem; line-height: 1; }
+  .item .label { font-size: 0.78rem; color: #2c5478; margin-top: 4px; font-weight: 700; text-align: center; }
+  .item.flying {
+    position: fixed;
+    z-index: 500;
+    transition: left .38s cubic-bezier(.4,0,.6,1), top .38s cubic-bezier(.4,0,.6,1), transform .38s, opacity .38s;
+    pointer-events: none;
+  }
+  .item.attracted { transform: scale(0.2); opacity: 0; }
+  .item.fallen { transform: translateY(260px) rotate(35deg); opacity: 0; }
+
+  #magnet {
+    position: absolute;
+    width: 92px;
+    height: 92px;
+    left: 50%;
+    top: 40px;
+    transform: translate(-50%, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.4rem;
+    cursor: grab;
+    touch-action: none;
+    z-index: 100;
+    filter: drop-shadow(0 8px 10px rgba(0,0,0,0.25));
+  }
+  #magnet:active { cursor: grabbing; }
+  #magnet.pulse { animation: magnetPulse .3s ease-out; }
+  @keyframes magnetPulse { 0% { transform: translate(-50%,0) scale(1); } 50% { transform: translate(-50%,0) scale(1.25); } 100% { transform: translate(-50%,0) scale(1); } }
+
+  .results {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .results .col { flex: 1; min-width: 220px; max-width: 340px; background: #fbfdff; border-radius: 16px; padding: 14px 16px; border: 2px solid #eef4f8; }
+  .results h3 { margin: 0 0 8px; font-size: 1rem; }
+  .results .col.caught h3 { color: #c9622a; }
+  .results .col.fallen h3 { color: #4472a8; }
+  .results ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px; }
+  .results li { background: #fff; border-radius: 10px; padding: 6px 10px; font-size: 1.4rem; border: 1px solid #e5edf3; }
+
+  .summary-box {
+    margin-top: 20px;
+    background: #fff8e8;
+    border: 2px solid #f0d38a;
+    border-radius: 18px;
+    padding: 18px 22px;
+    display: none;
+  }
+  .summary-box.show { display: block; }
+  .summary-box h3 { margin: 0 0 8px; color: #a5711b; }
+  .summary-box p { margin: 6px 0; line-height: 1.7; color: #5a4322; font-size: 0.98rem; }
+
+  .actions { text-align: center; margin-top: 18px; }
+  .reset-btn {
+    background: #2c5478;
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #1a3550;
+  }
+  .reset-btn:active { transform: translateY(4px); box-shadow: none; }
+
+  /* ===== 磁极实验 ===== */
+  .pole-stage {
+    background: #fff;
+    border-radius: 28px;
+    box-shadow: 0 10px 30px rgba(30,58,95,0.12);
+    padding: 30px 20px 40px;
+    text-align: center;
+  }
+  .pole-row { display: flex; justify-content: center; align-items: center; gap: 50px; margin: 30px 0; flex-wrap: wrap; }
+  .bar-magnet {
+    width: 180px;
+    height: 60px;
+    border-radius: 8px;
+    display: flex;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    transition: transform .5s cubic-bezier(.34,1.4,.64,1);
+  }
+  .bar-magnet .end {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.6rem;
+  }
+  .bar-magnet .end.N { background: #d64545; border-radius: 8px 0 0 8px; }
+  .bar-magnet .end.S { background: #2f6fb5; border-radius: 0 8px 8px 0; }
+  .bar-magnet.flip .end.N { order: 2; border-radius: 0 8px 8px 0; }
+  .bar-magnet.flip .end.S { order: 1; border-radius: 8px 0 0 8px; }
+  .pole-stage.attract .bar-magnet:first-child { transform: translateX(40px); }
+  .pole-stage.attract .bar-magnet:last-child { transform: translateX(-40px); }
+  .pole-stage.repel .bar-magnet:first-child { transform: translateX(-16px); }
+  .pole-stage.repel .bar-magnet:last-child { transform: translateX(16px); }
+
+  .pole-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .pole-controls button {
+    border: 2px solid #bcd6e8;
+    background: #fff;
+    color: #2c5478;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #poleResult { min-height: 60px; font-size: 1.3rem; font-weight: 800; margin-top: 10px; }
+  #poleResult.attract-text { color: #c9622a; }
+  #poleResult.repel-text { color: #2f6fb5; }
+
+  .test-btn {
+    margin-top: 10px;
+    background: #e8873e;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 999px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #b4632a;
+  }
+  .test-btn:active { transform: translateY(4px); box-shadow: none; }
+
+  /* ===== 磁铁家族 ===== */
+  .shape-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 18px;
+  }
+  .shape-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(30,58,95,0.1);
+    padding: 22px 16px;
+    text-align: center;
+  }
+  .shape-card .shape-icon { height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+  .shape-card .name-zh { font-weight: 800; color: #1e3a5f; font-size: 1.05rem; }
+  .shape-card .name-bm { color: #7a93ab; font-size: 0.85rem; margin-top: 2px; }
+
+  .shape-bar { width: 90px; height: 30px; background: linear-gradient(90deg,#d64545 50%,#2f6fb5 50%); border-radius: 6px; }
+  .shape-cylinder { width: 40px; height: 80px; background: linear-gradient(90deg,#d64545 50%,#2f6fb5 50%); border-radius: 20px; }
+  .shape-horseshoe { width: 70px; height: 70px; border: 16px solid #d64545; border-bottom-color: transparent; border-radius: 50%; box-sizing: border-box; position: relative; }
+  .shape-horseshoe::after { content:""; position:absolute; left:16px; right:16px; bottom:8px; height:16px; background:#2f6fb5; }
+  .shape-u { width: 60px; height: 70px; border: 14px solid #2f6fb5; border-top: none; border-radius: 0 0 30px 30px; }
+  .shape-button { width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #b0b8c0, #6b7480); }
+  .shape-ring { width: 66px; height: 66px; border-radius: 50%; background: conic-gradient(#d64545 0deg 180deg, #2f6fb5 180deg 360deg); position: relative; }
+  .shape-ring::after { content:""; position:absolute; inset:16px; background:#fff; border-radius:50%; }
+
+  footer { text-align:center; color:#9db3c6; font-size:0.75rem; padding: 10px 0 30px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧲 磁铁大发现</h1>
+  <p>拖动磁铁靠近这些东西，看看谁会被吸起来！</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="test">测一测</button>
+  <button class="tab-btn" data-tab="pole">磁极实验</button>
+  <button class="tab-btn" data-tab="shapes">磁铁家族</button>
+</div>
+
+<!-- ===== Tab 1: 测一测 ===== -->
+<section class="panel active" id="panel-test">
+  <div id="stage-wrap">
+    <div id="magnet">🧲</div>
+    <p class="hint">先请全班猜一猜，哪些东西会被磁铁吸起来？再拖磁铁去测试吧！</p>
+    <div class="shelf" id="shelf"></div>
+  </div>
+
+  <div class="results">
+    <div class="col caught">
+      <h3>🧲 被磁铁吸住的</h3>
+      <ul id="caughtList"></ul>
+    </div>
+    <div class="col fallen">
+      <h3>⬇️ 没被吸住、掉下去的</h3>
+      <ul id="fallenList"></ul>
+    </div>
+  </div>
+
+  <div class="summary-box" id="summaryBox">
+    <h3>小结论</h3>
+    <p id="summaryText"></p>
+  </div>
+
+  <div class="actions">
+    <button class="reset-btn" id="resetBtn">🔄 重新开始</button>
+  </div>
+</section>
+
+<!-- ===== Tab 2: 磁极实验 ===== -->
+<section class="panel" id="panel-pole">
+  <div class="pole-stage" id="poleStage">
+    <p class="hint">红色是 N 极，蓝色是 S 极。翻转磁铁，猜猜两个磁铁靠近时会怎样？</p>
+    <div class="pole-row">
+      <div class="pole-controls">
+        <div class="bar-magnet" id="magnetA"><div class="end N">N</div><div class="end S">S</div></div>
+        <button id="flipA">↔️ 翻转</button>
+      </div>
+      <div class="pole-controls">
+        <div class="bar-magnet" id="magnetB"><div class="end N">N</div><div class="end S">S</div></div>
+        <button id="flipB">↔️ 翻转</button>
+      </div>
+    </div>
+    <button class="test-btn" id="poleTestBtn">靠近测试！</button>
+    <div id="poleResult"></div>
+  </div>
+</section>
+
+<!-- ===== Tab 3: 磁铁家族 ===== -->
+<section class="panel" id="panel-shapes">
+  <div class="shape-grid">
+    <div class="shape-card"><div class="shape-icon"><div class="shape-bar"></div></div><div class="name-zh">条形磁铁</div><div class="name-bm">Magnet Bar</div></div>
+    <div class="shape-card"><div class="shape-icon"><div class="shape-cylinder"></div></div><div class="name-zh">棒形磁铁</div><div class="name-bm">Magnet Silinder</div></div>
+    <div class="shape-card"><div class="shape-icon"><div class="shape-horseshoe"></div></div><div class="name-zh">马蹄形磁铁</div><div class="name-bm">Magnet Ladam</div></div>
+    <div class="shape-card"><div class="shape-icon"><div class="shape-u"></div></div><div class="name-zh">U 形磁铁</div><div class="name-bm">Magnet Bentuk U</div></div>
+    <div class="shape-card"><div class="shape-icon"><div class="shape-button"></div></div><div class="name-zh">钮扣形磁铁</div><div class="name-bm">Magnet Butang</div></div>
+    <div class="shape-card"><div class="shape-icon"><div class="shape-ring"></div></div><div class="name-zh">环形磁铁</div><div class="name-bm">Magnet Cincin</div></div>
+  </div>
+</section>
+
+<footer>Tahun 1 Sains · 7.1 Magnet</footer>
+
+<script>
+// ============ 数据：会/不会被磁铁吸引的物品 ============
+const ITEMS = [
+  { id: 'key', emoji: '🔑', label: '钥匙', magnetic: true },
+  { id: 'clip', emoji: '🖇️', label: '回形针', magnetic: true },
+  { id: 'screw', emoji: '🔩', label: '螺丝钉', magnetic: true },
+  { id: 'spoon', emoji: '🥄', label: '铁汤匙', magnetic: true },
+  { id: 'scissors', emoji: '✂️', label: '剪刀', magnetic: true },
+  { id: 'pencil', emoji: '✏️', label: '铅笔', magnetic: false },
+  { id: 'ruler', emoji: '📏', label: '塑料尺', magnetic: false },
+  { id: 'cup', emoji: '🥛', label: '玻璃杯', magnetic: false },
+  { id: 'cloth', emoji: '👕', label: '布料', magnetic: false },
+  { id: 'paper', emoji: '📄', label: '纸张', magnetic: false },
+  { id: 'can', emoji: '🥫', label: '铝罐', magnetic: false },
+];
+
+let resolvedCount = 0;
+const totalCount = ITEMS.length;
+
+const shelfEl = document.getElementById('shelf');
+const magnetEl = document.getElementById('magnet');
+const stageWrap = document.getElementById('stage-wrap');
+const caughtListEl = document.getElementById('caughtList');
+const fallenListEl = document.getElementById('fallenList');
+const summaryBox = document.getElementById('summaryBox');
+const summaryText = document.getElementById('summaryText');
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function buildShelf() {
+  shelfEl.innerHTML = '';
+  shuffle(ITEMS).forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.id = 'item-' + item.id;
+    div.dataset.id = item.id;
+    div.innerHTML = `<div class="emoji">${item.emoji}</div><div class="label">${item.label}</div>`;
+    shelfEl.appendChild(div);
+  });
+}
+buildShelf();
+
+function resetGame() {
+  resolvedCount = 0;
+  caughtListEl.innerHTML = '';
+  fallenListEl.innerHTML = '';
+  summaryBox.classList.remove('show');
+  magnetEl.style.left = '50%';
+  magnetEl.style.top = '40px';
+  magnetEl.style.transform = 'translate(-50%, 0)';
+  buildShelf();
+}
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+// ============ 拖曳磁铁 ============
+let dragging = false;
+let dragOffsetX = 0, dragOffsetY = 0;
+
+function magnetCenter() {
+  const r = magnetEl.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+
+magnetEl.addEventListener('pointerdown', (e) => {
+  dragging = true;
+  magnetEl.setPointerCapture(e.pointerId);
+  const r = magnetEl.getBoundingClientRect();
+  dragOffsetX = e.clientX - r.left;
+  dragOffsetY = e.clientY - r.top;
+});
+
+magnetEl.addEventListener('pointermove', (e) => {
+  if (!dragging) return;
+  const wrapRect = stageWrap.getBoundingClientRect();
+  let x = e.clientX - dragOffsetX - wrapRect.left;
+  let y = e.clientY - dragOffsetY - wrapRect.top;
+  x = Math.max(-20, Math.min(wrapRect.width - 72, x));
+  y = Math.max(-10, Math.min(wrapRect.height - 72, y));
+  magnetEl.style.left = x + 'px';
+  magnetEl.style.top = y + 'px';
+  magnetEl.style.transform = 'none';
+  checkProximity();
+});
+
+magnetEl.addEventListener('pointerup', (e) => {
+  dragging = false;
+  magnetEl.releasePointerCapture(e.pointerId);
+});
+
+const TRIGGER_RADIUS = 78;
+
+function checkProximity() {
+  const mc = magnetCenter();
+  document.querySelectorAll('.shelf .item').forEach(el => {
+    const r = el.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dist = Math.hypot(mc.x - cx, mc.y - cy);
+    if (dist < TRIGGER_RADIUS) {
+      resolveItem(el);
+    }
+  });
+}
+
+function resolveItem(el) {
+  if (el.dataset.resolving) return;
+  el.dataset.resolving = '1';
+  const item = ITEMS.find(i => i.id === el.dataset.id);
+  const startRect = el.getBoundingClientRect();
+
+  // 冻结在原本的屏幕位置，转成 fixed 定位方便飞行动画
+  el.classList.add('flying');
+  el.style.left = startRect.left + 'px';
+  el.style.top = startRect.top + 'px';
+  el.style.width = startRect.width + 'px';
+  el.style.height = startRect.height + 'px';
+
+  requestAnimationFrame(() => {
+    if (item.magnetic) {
+      const mc = magnetCenter();
+      el.style.left = (mc.x - startRect.width / 2) + 'px';
+      el.style.top = (mc.y - startRect.height / 2) + 'px';
+      el.classList.add('attracted');
+      magnetEl.classList.remove('pulse'); void magnetEl.offsetWidth; magnetEl.classList.add('pulse');
+    } else {
+      el.classList.add('fallen');
+    }
+  });
+
+  setTimeout(() => {
+    el.remove();
+    const li = document.createElement('li');
+    li.textContent = item.emoji + ' ' + item.label;
+    (item.magnetic ? caughtListEl : fallenListEl).appendChild(li);
+    resolvedCount++;
+    if (resolvedCount >= totalCount) showSummary();
+  }, 420);
+}
+
+function showSummary() {
+  const caught = ITEMS.filter(i => i.magnetic).map(i => i.label).join('、');
+  const fallen = ITEMS.filter(i => !i.magnetic).map(i => i.label).join('、');
+  summaryText.innerHTML =
+    `磁铁只会吸住<strong>含铁、镍、钴</strong>的金属物品，像 <strong>${caught}</strong> 这些都被吸起来了。<br>` +
+    `${fallen} 虽然有些也是金属做的（比如铝罐），但<strong>铝不会被磁铁吸引</strong>，所以都掉下去了——不是所有金属都会被磁铁吸住哦！`;
+  summaryBox.classList.add('show');
+}
+
+// ============ Tab 切换 ============
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ============ 磁极实验 ============
+const magnetA = document.getElementById('magnetA');
+const magnetB = document.getElementById('magnetB');
+const poleStage = document.getElementById('poleStage');
+const poleResult = document.getElementById('poleResult');
+
+document.getElementById('flipA').addEventListener('click', () => {
+  magnetA.classList.toggle('flip');
+  clearPoleResult();
+});
+document.getElementById('flipB').addEventListener('click', () => {
+  magnetB.classList.toggle('flip');
+  clearPoleResult();
+});
+
+function clearPoleResult() {
+  poleStage.classList.remove('attract', 'repel');
+  poleResult.textContent = '';
+  poleResult.className = '';
+}
+
+document.getElementById('poleTestBtn').addEventListener('click', () => {
+  // magnetA 靠近 magnetB 的那一端（magnetA 的右端／magnetB 的左端）
+  // 没翻转时 N 在左 S 在右；翻转后顺序互换
+  const aFacing = magnetA.classList.contains('flip') ? 'N' : 'S'; // A 的右端
+  const bFacing = magnetB.classList.contains('flip') ? 'S' : 'N'; // B 的左端
+
+  clearPoleResult();
+  if (aFacing === bFacing) {
+    poleStage.classList.add('repel');
+    poleResult.textContent = '💥 同极相斥！两个磁铁被推开了';
+    poleResult.classList.add('repel-text');
+  } else {
+    poleStage.classList.add('attract');
+    poleResult.textContent = '🧲 异极相吸！两个磁铁贴在一起了';
+    poleResult.classList.add('attract-text');
+  }
+});
+</script>
+</body>
+</html>
