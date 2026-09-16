@@ -1,537 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>磁铁大发现</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>磁铁大发现｜科学探索实验室</title>
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0;
-    font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
-    background: linear-gradient(180deg, #eef6fb 0%, #dcecf5 100%);
-    min-height: 100vh;
-    overflow-x: hidden;
-    user-select: none;
-  }
-
-  header {
-    text-align: center;
-    padding: 18px 16px 10px;
-  }
-  header h1 {
-    margin: 0;
-    font-size: 2rem;
-    color: #1e3a5f;
-    letter-spacing: 2px;
-  }
-  header p {
-    margin: 4px 0 0;
-    color: #5b7a99;
-    font-size: 0.95rem;
-  }
-
-  .tabs {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 14px 0 6px;
-    flex-wrap: wrap;
-  }
-  .tab-btn {
-    border: 2px solid #bcd6e8;
-    background: #fff;
-    color: #2c5478;
-    font-weight: 700;
-    padding: 10px 20px;
-    border-radius: 999px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all .2s;
-  }
-  .tab-btn.active {
-    background: #2c5478;
-    color: #fff;
-    border-color: #2c5478;
-    box-shadow: 0 6px 0 #1a3550;
-    transform: translateY(-2px);
-  }
-
-  .panel { display: none; max-width: 1100px; margin: 0 auto; padding: 10px 16px 60px; }
-  .panel.active { display: block; }
-
-  /* ===== 测一测 ===== */
-  #stage-wrap {
-    position: relative;
-    background: #fff;
-    border-radius: 28px;
-    box-shadow: 0 10px 30px rgba(30,58,95,0.12);
-    padding: 20px;
-    min-height: 430px;
-  }
-  .hint {
-    text-align: center;
-    color: #3d6690;
-    font-size: 1.05rem;
-    margin-bottom: 14px;
-    font-weight: 600;
-  }
-  .shelf {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 18px;
-    justify-content: center;
-    padding: 20px 10px 60px;
-    min-height: 160px;
-    border-bottom: 3px dashed #d3e3ee;
-  }
-  .item {
-    width: 84px;
-    height: 96px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #f7fbfd;
-    border: 2px solid #d3e3ee;
-    border-radius: 16px;
-    cursor: default;
-    transition: box-shadow .15s;
-  }
-  .item .emoji { font-size: 2.6rem; line-height: 1; }
-  .item .label { font-size: 0.78rem; color: #2c5478; margin-top: 4px; font-weight: 700; text-align: center; }
-  .item.flying {
-    position: fixed;
-    z-index: 500;
-    transition: left .38s cubic-bezier(.4,0,.6,1), top .38s cubic-bezier(.4,0,.6,1), transform .38s, opacity .38s;
-    pointer-events: none;
-  }
-  .item.attracted { transform: scale(0.2); opacity: 0; }
-  .item.fallen { transform: translateY(260px) rotate(35deg); opacity: 0; }
-
-  #magnet {
-    position: absolute;
-    width: 92px;
-    height: 92px;
-    left: 50%;
-    top: 40px;
-    transform: translate(-50%, 0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.4rem;
-    cursor: grab;
-    touch-action: none;
-    z-index: 100;
-    filter: drop-shadow(0 8px 10px rgba(0,0,0,0.25));
-  }
-  #magnet:active { cursor: grabbing; }
-  #magnet.pulse { animation: magnetPulse .3s ease-out; }
-  @keyframes magnetPulse { 0% { transform: translate(-50%,0) scale(1); } 50% { transform: translate(-50%,0) scale(1.25); } 100% { transform: translate(-50%,0) scale(1); } }
-
-  .results {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    margin-top: 18px;
-    flex-wrap: wrap;
-  }
-  .results .col { flex: 1; min-width: 220px; max-width: 340px; background: #fbfdff; border-radius: 16px; padding: 14px 16px; border: 2px solid #eef4f8; }
-  .results h3 { margin: 0 0 8px; font-size: 1rem; }
-  .results .col.caught h3 { color: #c9622a; }
-  .results .col.fallen h3 { color: #4472a8; }
-  .results ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px; }
-  .results li { background: #fff; border-radius: 10px; padding: 6px 10px; font-size: 1.4rem; border: 1px solid #e5edf3; }
-
-  .summary-box {
-    margin-top: 20px;
-    background: #fff8e8;
-    border: 2px solid #f0d38a;
-    border-radius: 18px;
-    padding: 18px 22px;
-    display: none;
-  }
-  .summary-box.show { display: block; }
-  .summary-box h3 { margin: 0 0 8px; color: #a5711b; }
-  .summary-box p { margin: 6px 0; line-height: 1.7; color: #5a4322; font-size: 0.98rem; }
-
-  .actions { text-align: center; margin-top: 18px; }
-  .reset-btn {
-    background: #2c5478;
-    color: #fff;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 999px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 6px 0 #1a3550;
-  }
-  .reset-btn:active { transform: translateY(4px); box-shadow: none; }
-
-  /* ===== 磁极实验 ===== */
-  .pole-stage {
-    background: #fff;
-    border-radius: 28px;
-    box-shadow: 0 10px 30px rgba(30,58,95,0.12);
-    padding: 30px 20px 40px;
-    text-align: center;
-  }
-  .pole-row { display: flex; justify-content: center; align-items: center; gap: 50px; margin: 30px 0; flex-wrap: wrap; }
-  .bar-magnet {
-    width: 180px;
-    height: 60px;
-    border-radius: 8px;
-    display: flex;
-    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
-    transition: transform .5s cubic-bezier(.34,1.4,.64,1);
-  }
-  .bar-magnet .end {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 900;
-    font-size: 1.6rem;
-  }
-  .bar-magnet .end.N { background: #d64545; border-radius: 8px 0 0 8px; }
-  .bar-magnet .end.S { background: #2f6fb5; border-radius: 0 8px 8px 0; }
-  .bar-magnet.flip .end.N { order: 2; border-radius: 0 8px 8px 0; }
-  .bar-magnet.flip .end.S { order: 1; border-radius: 8px 0 0 8px; }
-  .pole-stage.attract .bar-magnet:first-child { transform: translateX(40px); }
-  .pole-stage.attract .bar-magnet:last-child { transform: translateX(-40px); }
-  .pole-stage.repel .bar-magnet:first-child { transform: translateX(-16px); }
-  .pole-stage.repel .bar-magnet:last-child { transform: translateX(16px); }
-
-  .pole-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .pole-controls button {
-    border: 2px solid #bcd6e8;
-    background: #fff;
-    color: #2c5478;
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  #poleResult { min-height: 60px; font-size: 1.3rem; font-weight: 800; margin-top: 10px; }
-  #poleResult.attract-text { color: #c9622a; }
-  #poleResult.repel-text { color: #2f6fb5; }
-
-  .test-btn {
-    margin-top: 10px;
-    background: #e8873e;
-    color: #fff;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 999px;
-    font-size: 1.05rem;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 6px 0 #b4632a;
-  }
-  .test-btn:active { transform: translateY(4px); box-shadow: none; }
-
-  /* ===== 磁铁家族 ===== */
-  .shape-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 18px;
-  }
-  .shape-card {
-    background: #fff;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(30,58,95,0.1);
-    padding: 22px 16px;
-    text-align: center;
-  }
-  .shape-card .shape-icon { height: 80px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
-  .shape-card .name-zh { font-weight: 800; color: #1e3a5f; font-size: 1.05rem; }
-  .shape-card .name-bm { color: #7a93ab; font-size: 0.85rem; margin-top: 2px; }
-
-  .shape-bar { width: 90px; height: 30px; background: linear-gradient(90deg,#d64545 50%,#2f6fb5 50%); border-radius: 6px; }
-  .shape-cylinder { width: 40px; height: 80px; background: linear-gradient(90deg,#d64545 50%,#2f6fb5 50%); border-radius: 20px; }
-  .shape-horseshoe { width: 70px; height: 70px; border: 16px solid #d64545; border-bottom-color: transparent; border-radius: 50%; box-sizing: border-box; position: relative; }
-  .shape-horseshoe::after { content:""; position:absolute; left:16px; right:16px; bottom:8px; height:16px; background:#2f6fb5; }
-  .shape-u { width: 60px; height: 70px; border: 14px solid #2f6fb5; border-top: none; border-radius: 0 0 30px 30px; }
-  .shape-button { width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #b0b8c0, #6b7480); }
-  .shape-ring { width: 66px; height: 66px; border-radius: 50%; background: conic-gradient(#d64545 0deg 180deg, #2f6fb5 180deg 360deg); position: relative; }
-  .shape-ring::after { content:""; position:absolute; inset:16px; background:#fff; border-radius:50%; }
-
-  footer { text-align:center; color:#9db3c6; font-size:0.75rem; padding: 10px 0 30px; }
+:root{--paper:#f6f1e8;--surface:#fffdf8;--ink:#102b3e;--muted:#667783;--line:#d9d6ce;--navy:#12364d;--navy-2:#194c67;--red:#c94e4e;--blue:#3e78ad;--gold:#c88e38;--green:#427d65;--shadow:0 12px 32px rgba(16,43,62,.10);--r-sm:10px;--r-md:16px;--r-lg:24px;--space:clamp(14px,2vw,24px);--ease:180ms ease;}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.55}button{font:inherit}button:focus-visible,[tabindex]:focus-visible{outline:3px solid #e3aa42;outline-offset:3px}.shell{max-width:1180px;margin:auto;padding:18px var(--space) 48px}.topbar{display:flex;justify-content:space-between;gap:18px;align-items:center;border-bottom:1px solid var(--line);padding:4px 0 18px}.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:42px;height:42px}.eyebrow{font-size:.73rem;letter-spacing:.16em;font-weight:800;color:var(--navy-2);text-transform:uppercase}.brand h1{font-size:clamp(1.35rem,3vw,2rem);line-height:1.1;margin:2px 0 0;letter-spacing:.02em}.mode{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:.86rem}.switch{display:flex;border:1px solid var(--line);background:var(--surface);padding:3px;border-radius:var(--r-sm)}.switch button{border:0;background:transparent;color:var(--muted);padding:8px 12px;min-height:40px;cursor:pointer}.switch button.active{background:var(--navy);color:white;border-radius:7px}.intro{display:grid;grid-template-columns:1.4fr .85fr;gap:var(--space);align-items:end;padding:28px 0 22px}.intro h2{font-size:clamp(1.7rem,4.5vw,3.25rem);line-height:1.1;max-width:720px;margin:8px 0 12px;letter-spacing:-.03em}.intro p{max-width:680px;color:var(--muted);margin:0}.question-card{border:1px solid var(--line);background:var(--surface);padding:16px 18px;border-radius:var(--r-md);position:relative}.question-card:before{content:"";width:4px;background:var(--red);position:absolute;left:0;top:16px;bottom:16px}.question-card strong{display:block;padding-left:10px}.question-card span{display:block;color:var(--muted);font-size:.86rem;padding:4px 0 0 10px}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:10px 0 26px}.flow-step{min-height:58px;border-top:3px solid var(--line);padding:8px 6px;color:var(--muted);font-size:.8rem}.flow-step b{display:block;color:var(--ink);font-size:.9rem}.flow-step.active{border-color:var(--red);color:var(--red)}.flow-step.active b{color:var(--red)}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:var(--space);align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:clamp(18px,3vw,30px)}.panel-head{display:flex;justify-content:space-between;gap:15px;align-items:start;margin-bottom:18px}.panel h3{font-size:1.25rem;margin:0}.panel-head p{font-size:.88rem;color:var(--muted);margin:4px 0 0}.status{font-size:.76rem;white-space:nowrap;color:var(--navy-2);background:#e7eff0;padding:6px 9px;border-radius:6px}.step{display:none}.step.active{display:block}.step-title{font-size:1.05rem;font-weight:800;margin:4px 0 14px}.predict-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.predict-card{border:1px solid var(--line);border-radius:var(--r-md);background:#fffefa;padding:12px;min-height:132px;display:flex;flex-direction:column;justify-content:space-between}.object-name{display:flex;align-items:center;gap:9px;font-weight:800}.object-icon{width:38px;height:38px;color:var(--navy-2);flex:none}.material{font-size:.76rem;color:var(--muted);font-weight:500}.choice{display:flex;gap:6px;margin-top:12px}.choice button,.action{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:7px;padding:8px 7px;min-height:42px;cursor:pointer;flex:1}.choice button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}.choice button:disabled{cursor:default;opacity:.55}.next-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:12px}.primary{background:var(--navy);border:1px solid var(--navy);color:#fff;border-radius:8px;padding:11px 18px;min-height:46px;cursor:pointer;font-weight:800}.secondary{background:transparent;border:1px solid var(--line);color:var(--navy);border-radius:8px;padding:10px 15px;min-height:44px;cursor:pointer}.primary:disabled{opacity:.45;cursor:not-allowed}.note{font-size:.82rem;color:var(--muted)}.experiment-board{background:#f2ede3;border:1px solid var(--line);border-radius:var(--r-md);padding:16px}.board-instruction{margin:0 0 13px;font-weight:700}.object-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.test-object{min-height:106px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:9px;transition:transform var(--ease),border-color var(--ease)}.test-object:hover{transform:translateY(-2px);border-color:var(--navy-2)}.test-object.tested{cursor:default;opacity:.65}.test-object.tested.correct{border-color:var(--green);background:#eef6f0}.test-object.tested.incorrect{border-color:var(--red);background:#fbefed}.test-object .object-icon{width:34px;height:34px}.test-object strong{font-size:.86rem;display:block}.test-object small{display:block;color:var(--muted);font-size:.7rem}.feedback{min-height:42px;margin-top:12px;padding:10px 12px;border-left:4px solid var(--gold);background:#fff8e7;font-size:.87rem}.feedback.good{border-left-color:var(--green);background:#edf7f0}.magnet-wrap{display:flex;align-items:center;justify-content:center;gap:18px;padding:20px 8px 12px;border-bottom:1px solid var(--line);margin-bottom:14px}.draggable-magnet{width:110px;height:48px;display:flex;cursor:grab;touch-action:none;user-select:none;filter:drop-shadow(0 5px 4px rgba(16,43,62,.12));transition:transform var(--ease)}.draggable-magnet:active{cursor:grabbing;transform:scale(1.03)}.pole{color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;width:50%;font-size:1.15rem}.pole.n{background:var(--red);border-radius:8px 0 0 8px}.pole.s{background:var(--blue);border-radius:0 8px 8px 0}.drop-zone{border:1px dashed #aeb8b7;border-radius:8px;padding:10px;color:var(--muted);font-size:.8rem;text-align:center;min-width:155px}.record-table{width:100%;border-collapse:collapse;font-size:.85rem}.record-table th,.record-table td{text-align:left;padding:9px 7px;border-bottom:1px solid var(--line)}.record-table th{color:var(--muted);font-size:.75rem}.explain-list{display:grid;gap:10px}.explain-row{display:flex;gap:10px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:10px}.explain-row svg{width:22px;height:22px;color:var(--green);flex:none}.explain-row p{margin:0;font-size:.88rem}.check-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}.check-list li{display:flex;gap:10px;align-items:center;border:1px solid var(--line);padding:11px;border-radius:10px}.check-list input{width:20px;height:20px;accent-color:var(--navy)}.side{display:grid;gap:14px}.side-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:17px}.side-card h4{margin:0 0 10px}.meter{height:8px;background:#e3e0d8;border-radius:2px;overflow:hidden}.meter i{display:block;height:100%;background:var(--green);width:0;transition:width var(--ease)}.side-stat{display:flex;justify-content:space-between;color:var(--muted);font-size:.84rem;margin-top:8px}.tip{font-size:.82rem;color:var(--muted);margin:0}.report{border:1px solid #bdd7c7;background:#f1f8f2;border-radius:var(--r-md);padding:17px}.report h4{margin:0 0 8px;color:var(--green)}.report p{font-size:.87rem;margin:5px 0}.shape-section{margin-top:20px}.shape-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}.shape-card{border:1px solid var(--line);border-radius:10px;padding:11px 6px;text-align:center;background:#fffefa}.shape-card svg{height:50px;width:74px;color:var(--navy-2)}.shape-card span{font-size:.73rem;display:block;font-weight:700}.shape-card small{font-size:.64rem;color:var(--muted)}footer{text-align:center;color:var(--muted);font-size:.72rem;margin-top:28px}
+@media(max-width:850px){.intro{grid-template-columns:1fr}.workspace{grid-template-columns:1fr}.side{grid-template-columns:repeat(2,1fr)}.shape-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.shell{padding:12px 12px 36px}.topbar{align-items:start;flex-direction:column}.mode{width:100%;justify-content:space-between}.flow-step{font-size:.7rem}.flow-step b{font-size:.8rem}.predict-grid,.object-grid{grid-template-columns:repeat(2,1fr)}.side{grid-template-columns:1fr}.panel{padding:16px}.panel-head{display:block}.status{display:inline-block;margin-top:9px}.shape-grid{grid-template-columns:repeat(2,1fr)}.next-row{align-items:stretch;flex-direction:column}.next-row button{width:100%}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+ .experiment-modules{display:grid;gap:14px;margin-top:16px}.experiment-module{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface)}.experiment-module h4{margin:0 0 4px;font-size:1rem}.experiment-module p{margin:4px 0;color:var(--muted);font-size:.82rem}.module-result{min-height:28px;margin-top:9px;font-size:.84rem;color:var(--green)}.module-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.module-controls button{min-height:42px;border:1px solid var(--line);background:transparent;border-radius:7px;padding:8px 11px;cursor:pointer;color:var(--ink)}.module-controls button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}.module-controls button:disabled{opacity:.5;cursor:default}.pole-lab{display:flex;justify-content:center;align-items:center;gap:18px;margin:12px 0}.lab-magnet{width:112px;height:42px;display:flex;transition:transform .35s ease}.lab-magnet.moving-left{transform:translateX(16px)}.lab-magnet.moving-right{transform:translateX(-16px)}.lab-magnet.flip{transform:rotateY(180deg)}.lab-magnet.flip.moving-left{transform:rotateY(180deg) translateX(16px)}.lab-magnet.flip.moving-right{transform:rotateY(180deg) translateX(-16px)}.strength-meter{display:flex;align-items:end;gap:18px;height:64px;margin:11px 0}.strength-bar{width:26px;background:var(--blue);height:14px;transition:height .25s ease}.strength-bar.tall{height:55px}.strength-label{font-size:.78rem;color:var(--muted)}.match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.match-card{border:1px solid var(--line);border-radius:9px;padding:10px;text-align:center}.match-card button{width:100%;margin-top:7px;min-height:40px;border:1px solid var(--line);background:transparent;border-radius:7px;cursor:pointer}.match-card button[aria-pressed=true]{background:#e8f1ed;border-color:var(--green)}.guide-only{display:block}.solo-only{display:none}.solo-only.tip{color:var(--green)}body[data-mode=solo] .guide-only{display:none}body[data-mode=solo] .solo-only{display:block}
+ .module-step{display:none}.module-step.revealed{display:block}body[data-mode=solo] .module-step{display:block}
 </style>
 </head>
 <body>
-
-<header>
-  <h1>🧲 磁铁大发现</h1>
-  <p>拖动磁铁靠近这些东西，看看谁会被吸起来！</p>
-</header>
-
-<div class="tabs">
-  <button class="tab-btn active" data-tab="test">测一测</button>
-  <button class="tab-btn" data-tab="pole">磁极实验</button>
-  <button class="tab-btn" data-tab="shapes">磁铁家族</button>
-</div>
-
-<!-- ===== Tab 1: 测一测 ===== -->
-<section class="panel active" id="panel-test">
-  <div id="stage-wrap">
-    <div id="magnet">🧲</div>
-    <p class="hint">先请全班猜一猜，哪些东西会被磁铁吸起来？再拖磁铁去测试吧！</p>
-    <div class="shelf" id="shelf"></div>
-  </div>
-
-  <div class="results">
-    <div class="col caught">
-      <h3>🧲 被磁铁吸住的</h3>
-      <ul id="caughtList"></ul>
-    </div>
-    <div class="col fallen">
-      <h3>⬇️ 没被吸住、掉下去的</h3>
-      <ul id="fallenList"></ul>
-    </div>
-  </div>
-
-  <div class="summary-box" id="summaryBox">
-    <h3>小结论</h3>
-    <p id="summaryText"></p>
-  </div>
-
-  <div class="actions">
-    <button class="reset-btn" id="resetBtn">🔄 重新开始</button>
-  </div>
-</section>
-
-<!-- ===== Tab 2: 磁极实验 ===== -->
-<section class="panel" id="panel-pole">
-  <div class="pole-stage" id="poleStage">
-    <p class="hint">红色是 N 极，蓝色是 S 极。翻转磁铁，猜猜两个磁铁靠近时会怎样？</p>
-    <div class="pole-row">
-      <div class="pole-controls">
-        <div class="bar-magnet" id="magnetA"><div class="end N">N</div><div class="end S">S</div></div>
-        <button id="flipA">↔️ 翻转</button>
-      </div>
-      <div class="pole-controls">
-        <div class="bar-magnet" id="magnetB"><div class="end N">N</div><div class="end S">S</div></div>
-        <button id="flipB">↔️ 翻转</button>
-      </div>
-    </div>
-    <button class="test-btn" id="poleTestBtn">靠近测试！</button>
-    <div id="poleResult"></div>
-  </div>
-</section>
-
-<!-- ===== Tab 3: 磁铁家族 ===== -->
-<section class="panel" id="panel-shapes">
-  <div class="shape-grid">
-    <div class="shape-card"><div class="shape-icon"><div class="shape-bar"></div></div><div class="name-zh">条形磁铁</div><div class="name-bm">Magnet Bar</div></div>
-    <div class="shape-card"><div class="shape-icon"><div class="shape-cylinder"></div></div><div class="name-zh">棒形磁铁</div><div class="name-bm">Magnet Silinder</div></div>
-    <div class="shape-card"><div class="shape-icon"><div class="shape-horseshoe"></div></div><div class="name-zh">马蹄形磁铁</div><div class="name-bm">Magnet Ladam</div></div>
-    <div class="shape-card"><div class="shape-icon"><div class="shape-u"></div></div><div class="name-zh">U 形磁铁</div><div class="name-bm">Magnet Bentuk U</div></div>
-    <div class="shape-card"><div class="shape-icon"><div class="shape-button"></div></div><div class="name-zh">钮扣形磁铁</div><div class="name-bm">Magnet Butang</div></div>
-    <div class="shape-card"><div class="shape-icon"><div class="shape-ring"></div></div><div class="name-zh">环形磁铁</div><div class="name-bm">Magnet Cincin</div></div>
-  </div>
-</section>
-
-<footer>Tahun 1 Sains · 7.1 Magnet</footer>
-
+<main class="shell">
+<header class="topbar"><div class="brand"><svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="12" width="18" height="24" rx="5" fill="none" stroke="#c94e4e" stroke-width="4"/><rect x="25" y="12" width="18" height="24" rx="5" fill="none" stroke="#3e78ad" stroke-width="4"/><path d="M23 16h2M23 32h2" stroke="#12364d" stroke-width="3"/></svg><div><div class="eyebrow">Tahun 1 · Sains 7.1</div><h1>科学探索实验室</h1></div></div><div class="mode"><span>学习方式</span><div class="switch" role="group" aria-label="学习方式"><button class="active" data-mode="guide">课堂引导</button><button data-mode="solo">自主学习</button></div></div></header>
+<section class="intro"><div><div class="eyebrow">Magnet · Observe, test, explain</div><h2>磁铁会选择什么？<br>把猜想变成证据。</h2><p>先预测，再用磁铁测试；把看到的现象记录下来，最后说出有根据的解释。</p></div><div class="question-card"><strong>今天的研究问题</strong><span>哪些物体会被磁铁吸引？磁铁的两极又有什么规律？</span></div></section>
+<nav class="flow" aria-label="实验流程"><div class="flow-step active" data-flow="predict"><b>01 预测</b>先想一想</div><div class="flow-step" data-flow="experiment"><b>02 实验</b>动手测试</div><div class="flow-step" data-flow="record"><b>03 记录</b>整理证据</div><div class="flow-step" data-flow="explain"><b>04 解释</b>说出原因</div><div class="flow-step" data-flow="check"><b>05 检查</b>完成报告</div></nav>
+<div class="workspace"><section class="panel" aria-live="polite"><div class="panel-head"><div><h3 id="stepHeading">预测：你认为会怎样？</h3><p id="stepSub">先选择每件物体的预测，测试前保留自己的想法。</p></div><span class="status" id="progressText">已完成 0 / 9</span></div>
+<div class="step active" id="step-predict"><p class="step-title">看标签，作出可检验的预测</p><div class="predict-grid" id="predictGrid"></div><div class="next-row"><span class="note">提示：不是所有金属都能被磁铁吸引。</span><button class="primary" id="toExperiment" disabled>进入实验</button></div></div>
+<div class="step" id="step-experiment"><p class="step-title">三个实验站：先预测，再测试</p><p class="guide-only note">课堂引导：老师可在每站暂停，让小组先说出预测，再按“开始测试”揭示结果。</p><p class="solo-only tip">自主学习：每站都有提示，你可以按自己的速度完成并即时查看原因。</p><div class="experiment-modules"><section class="experiment-module"><h4>A · 材料吸引测试</h4><p>选择物体测试，磁铁靠近后观察是否被吸引。</p><div class="magnet-wrap"><div class="draggable-magnet" id="dragMagnet" role="button" tabindex="0" aria-label="可拖动的条形磁铁"><span class="pole n">N</span><span class="pole s">S</span></div><div class="drop-zone">拖近物体<br>不需要精准拖放</div></div><div class="object-grid" id="objectGrid"></div><div class="feedback" id="experimentFeedback" aria-live="polite">磁铁准备好了。你可以点击或拖近一个物体。</div></section><section class="experiment-module"><h4>B · 两根条形磁铁：相吸还是相斥？</h4><p>先选择预测，再分别翻转磁铁 A、B，最后按测试观察运动。</p><div class="module-controls" role="group" aria-label="磁极预测"><button data-pole-predict="attract" aria-pressed="false">我预测相吸</button><button data-pole-predict="repel" aria-pressed="false">我预测相斥</button><button id="flipPoleA">翻转磁铁 A</button><button id="flipPoleB">翻转磁铁 B</button><button id="testPole">开始测试</button></div><div class="pole-lab"><div class="lab-magnet" id="poleA"><span class="pole n">N</span><span class="pole s">S</span></div><div class="lab-magnet" id="poleB"><span class="pole n">N</span><span class="pole s">S</span></div></div><div class="module-result" id="poleResult" aria-live="polite">等待你的预测。</div></section><section class="experiment-module"><h4>C · 磁力强弱比较</h4><p>先预测：距离近还是距离远时，能吸起更多钢制回形针？</p><div class="module-controls" role="group" aria-label="磁力强弱预测"><button data-strength-predict="near" aria-pressed="false">近距离较强</button><button data-strength-predict="far" aria-pressed="false">远距离较强</button><button id="testStrength">比较回形针数量</button></div><div class="strength-meter"><div><div class="strength-bar" id="nearBar"></div><span class="strength-label">近距离：1 个</span></div><div><div class="strength-bar" id="farBar"></div><span class="strength-label">远距离：0 个</span></div></div><div class="module-result" id="strengthResult" aria-live="polite">等待你的预测。</div></section></div><div class="next-row"><button class="secondary" id="backPredict">返回预测</button><button class="primary" id="toRecord" disabled>查看记录</button></div></div>
+<div class="step" id="step-record"><p class="step-title">整理你的实验记录</p><div id="recordContent"></div><div class="next-row"><span class="note">证据来自实际测试，不只是猜想。</span><button class="primary" id="toExplain">进入解释</button></div></div>
+<div class="step" id="step-explain"><p class="step-title">用科学语言解释现象</p><div class="explain-list"><div class="explain-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg><p><strong>能被吸引：</strong>物体含有会被磁铁吸引的材料，例如铁或钢。</p></div><div class="explain-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M8 12h8"/></svg><p><strong>没有被吸引：</strong>材料不具备这种磁性；铝、铜、塑料和木头都不会因此被磁铁吸住。</p></div><div class="explain-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 7 10 10M17 7 7 17"/></svg><p><strong>磁极规律：</strong>异极相吸，同极相斥；磁力强弱也会受距离影响。</p></div></div><div class="next-row"><span class="note">把“现象”和“原因”连起来，就是解释。</span><button class="primary" id="toCheck">进入检查</button></div></div>
+<div class="step" id="step-check"><p class="step-title">最后检查：完成五项掌握证据</p><div class="match-grid"><div class="match-card"><strong>磁铁用途</strong><p>哪一项会使用磁铁？</p><button data-utility="compass" aria-pressed="false">指南针</button><button data-utility="cup" aria-pressed="false">量杯</button><button data-utility="thermometer" aria-pressed="false">温度计</button><div class="module-result" id="utilityResult" aria-live="polite">请选择一个。</div></div><div class="match-card"><strong>磁铁形状</strong><p>选择环形磁铁。</p><button data-shape="bar" aria-pressed="false">条形：长方形</button><button data-shape="u" aria-pressed="false">U 形：弯曲</button><button data-shape="ring" aria-pressed="false">环形：中间有孔</button><div class="module-result" id="shapeResult" aria-live="polite">请选择一个。</div></div></div><ul class="check-list"><li><input type="checkbox" id="check1"><label for="check1">反思：我能用铁、钢与非磁性材料解释结果。</label></li><li><input type="checkbox" id="check2"><label for="check2">反思：我能说出同极相斥、异极相吸。</label></li><li><input type="checkbox" id="check3"><label for="check3">反思：我知道距离会影响磁力强弱。</label></li></ul><div class="next-row"><button class="secondary" id="restart">重新开始实验</button><button class="primary" id="reportBtn" disabled>生成学习报告</button></div><div class="report" id="report" hidden><h4>本次学习报告</h4><p id="reportSummary"></p><p id="mastery"></p><div id="evidenceReport"></div></div></div>
+</div></section>
+<aside class="side"><div class="side-card"><h4>学习进度</h4><div class="meter" aria-label="学习进度"><i id="meterBar"></i></div><div class="side-stat"><span id="sideLabel">预测还未开始</span><strong id="sidePercent">0%</strong></div></div><div class="side-card"><h4>磁铁的用途</h4><p class="tip">磁铁可以帮助指南针指向、吸住铁制物体，也能用在门扣和扬声器里。</p></div><div class="side-card"><h4>小小实验员</h4><p class="tip">观察时说清楚“被吸引”或“没有被吸引”，再说明物体的材料。</p></div></aside></div>
+<section class="panel shape-section"><div class="panel-head"><div><h3>磁铁形状观察站</h3><p>形状不同，都是磁铁；常见的有以下六种。</p></div></div><div class="shape-grid"><div class="shape-card"><svg viewBox="0 0 80 50" aria-hidden="true"><rect x="7" y="16" width="33" height="18" rx="3" fill="#c94e4e"/><rect x="40" y="16" width="33" height="18" rx="3" fill="#3e78ad"/></svg><span>条形</span><small>Magnet bar</small></div><div class="shape-card"><svg viewBox="0 0 80 50" aria-hidden="true"><ellipse cx="40" cy="12" rx="14" ry="5" fill="#c94e4e"/><path d="M26 12v27c0 6 28 6 28 0V12" fill="#3e78ad"/><ellipse cx="40" cy="39" rx="14" ry="5" fill="#255c8b"/></svg><span>棒形</span><small>Magnet silinder</small></div><div class="shape-card"><svg viewBox="0 0 80 50" aria-hidden="true"><path d="M18 38V20a22 22 0 0 1 44 0v18" fill="none" stroke="#c94e4e" stroke-width="11"/><path d="M18 37v-7M62 37v-7" stroke="#3e78ad" stroke-width="11"/></svg><span>马蹄形</span><small>Magnet ladam</small></div><div class="shape-card"><svg viewBox="0 0 80 50" aria-hidden="true"><path d="M18 12v22a22 22 0 0 0 44 0V12" fill="none" stroke="#3e78ad" stroke-width="11"/><path d="M18 12v8M62 12v8" stroke="#c94e4e" stroke-width="11"/></svg><span>U 形</span><small>Magnet bentuk U</small></div><div class="shape-card"><svg viewBox="0 0 80 50" aria-hidden="true"><circle cx="40" cy="25" r="18" fill="#3e78ad"/><path d="M22 25a18 18 0 0 1 36 0" fill="#c94e4e"/></svg><span>钮扣形</span><small>Magnet butang</small></div><div class="shape-card"><svg viewBox="0 0 80 50" aria-hidden="true"><circle cx="40" cy="25" r="18" fill="#3e78ad"/><path d="M22 25a18 18 0 0 1 36 0" fill="#c94e4e"/><circle cx="40" cy="25" r="7" fill="#fffdf8"/></svg><span>环形</span><small>Magnet cincin</small></div></div></section>
+<footer>一年级科学 · 7.1 磁铁 · 观察有证据，解释有原因</footer>
+</main>
 <script>
-// ============ 数据：会/不会被磁铁吸引的物品 ============
-const ITEMS = [
-  { id: 'key', emoji: '🔑', label: '钥匙', magnetic: true },
-  { id: 'clip', emoji: '🖇️', label: '回形针', magnetic: true },
-  { id: 'screw', emoji: '🔩', label: '螺丝钉', magnetic: true },
-  { id: 'spoon', emoji: '🥄', label: '铁汤匙', magnetic: true },
-  { id: 'scissors', emoji: '✂️', label: '剪刀', magnetic: true },
-  { id: 'pencil', emoji: '✏️', label: '铅笔', magnetic: false },
-  { id: 'ruler', emoji: '📏', label: '塑料尺', magnetic: false },
-  { id: 'cup', emoji: '🥛', label: '玻璃杯', magnetic: false },
-  { id: 'cloth', emoji: '👕', label: '布料', magnetic: false },
-  { id: 'paper', emoji: '📄', label: '纸张', magnetic: false },
-  { id: 'can', emoji: '🥫', label: '铝罐', magnetic: false },
+const ITEMS=[
+ {id:'nail',name:'铁钉',material:'铁',magnetic:true,type:'nail'},
+ {id:'clip',name:'钢制回形针',material:'钢',magnetic:true,type:'clip'},
+ {id:'washer',name:'钢垫圈',material:'钢',magnetic:true,type:'washer'},
+ {id:'bolt',name:'铁螺栓',material:'铁',magnetic:true,type:'bolt'},
+ {id:'foil',name:'铝箔',material:'铝',magnetic:false,type:'foil'},
+ {id:'wire',name:'铜线',material:'铜',magnetic:false,type:'wire'},
+ {id:'ruler',name:'塑料尺',material:'塑料',magnetic:false,type:'ruler'},
+ {id:'stick',name:'木棒',material:'木头',magnetic:false,type:'stick'},
+ {id:'marble',name:'玻璃珠',material:'玻璃',magnetic:false,type:'marble'}
 ];
-
-let resolvedCount = 0;
-const totalCount = ITEMS.length;
-
-const shelfEl = document.getElementById('shelf');
-const magnetEl = document.getElementById('magnet');
-const stageWrap = document.getElementById('stage-wrap');
-const caughtListEl = document.getElementById('caughtList');
-const fallenListEl = document.getElementById('fallenList');
-const summaryBox = document.getElementById('summaryBox');
-const summaryText = document.getElementById('summaryText');
-
-function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
-
-function buildShelf() {
-  shelfEl.innerHTML = '';
-  shuffle(ITEMS).forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.id = 'item-' + item.id;
-    div.dataset.id = item.id;
-    div.innerHTML = `<div class="emoji">${item.emoji}</div><div class="label">${item.label}</div>`;
-    shelfEl.appendChild(div);
-  });
-}
-buildShelf();
-
-function resetGame() {
-  resolvedCount = 0;
-  caughtListEl.innerHTML = '';
-  fallenListEl.innerHTML = '';
-  summaryBox.classList.remove('show');
-  magnetEl.style.left = '50%';
-  magnetEl.style.top = '40px';
-  magnetEl.style.transform = 'translate(-50%, 0)';
-  buildShelf();
-}
-document.getElementById('resetBtn').addEventListener('click', resetGame);
-
-// ============ 拖曳磁铁 ============
-let dragging = false;
-let dragOffsetX = 0, dragOffsetY = 0;
-
-function magnetCenter() {
-  const r = magnetEl.getBoundingClientRect();
-  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-}
-
-magnetEl.addEventListener('pointerdown', (e) => {
-  dragging = true;
-  magnetEl.setPointerCapture(e.pointerId);
-  const r = magnetEl.getBoundingClientRect();
-  dragOffsetX = e.clientX - r.left;
-  dragOffsetY = e.clientY - r.top;
-});
-
-magnetEl.addEventListener('pointermove', (e) => {
-  if (!dragging) return;
-  const wrapRect = stageWrap.getBoundingClientRect();
-  let x = e.clientX - dragOffsetX - wrapRect.left;
-  let y = e.clientY - dragOffsetY - wrapRect.top;
-  x = Math.max(-20, Math.min(wrapRect.width - 72, x));
-  y = Math.max(-10, Math.min(wrapRect.height - 72, y));
-  magnetEl.style.left = x + 'px';
-  magnetEl.style.top = y + 'px';
-  magnetEl.style.transform = 'none';
-  checkProximity();
-});
-
-magnetEl.addEventListener('pointerup', (e) => {
-  dragging = false;
-  magnetEl.releasePointerCapture(e.pointerId);
-});
-
-const TRIGGER_RADIUS = 78;
-
-function checkProximity() {
-  const mc = magnetCenter();
-  document.querySelectorAll('.shelf .item').forEach(el => {
-    const r = el.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const dist = Math.hypot(mc.x - cx, mc.y - cy);
-    if (dist < TRIGGER_RADIUS) {
-      resolveItem(el);
-    }
-  });
-}
-
-function resolveItem(el) {
-  if (el.dataset.resolving) return;
-  el.dataset.resolving = '1';
-  const item = ITEMS.find(i => i.id === el.dataset.id);
-  const startRect = el.getBoundingClientRect();
-
-  // 冻结在原本的屏幕位置，转成 fixed 定位方便飞行动画
-  el.classList.add('flying');
-  el.style.left = startRect.left + 'px';
-  el.style.top = startRect.top + 'px';
-  el.style.width = startRect.width + 'px';
-  el.style.height = startRect.height + 'px';
-
-  requestAnimationFrame(() => {
-    if (item.magnetic) {
-      const mc = magnetCenter();
-      el.style.left = (mc.x - startRect.width / 2) + 'px';
-      el.style.top = (mc.y - startRect.height / 2) + 'px';
-      el.classList.add('attracted');
-      magnetEl.classList.remove('pulse'); void magnetEl.offsetWidth; magnetEl.classList.add('pulse');
-    } else {
-      el.classList.add('fallen');
-    }
-  });
-
-  setTimeout(() => {
-    el.remove();
-    const li = document.createElement('li');
-    li.textContent = item.emoji + ' ' + item.label;
-    (item.magnetic ? caughtListEl : fallenListEl).appendChild(li);
-    resolvedCount++;
-    if (resolvedCount >= totalCount) showSummary();
-  }, 420);
-}
-
-function showSummary() {
-  const caught = ITEMS.filter(i => i.magnetic).map(i => i.label).join('、');
-  const fallen = ITEMS.filter(i => !i.magnetic).map(i => i.label).join('、');
-  summaryText.innerHTML =
-    `磁铁只会吸住<strong>含铁、镍、钴</strong>的金属物品，像 <strong>${caught}</strong> 这些都被吸起来了。<br>` +
-    `${fallen} 虽然有些也是金属做的（比如铝罐），但<strong>铝不会被磁铁吸引</strong>，所以都掉下去了——不是所有金属都会被磁铁吸住哦！`;
-  summaryBox.classList.add('show');
-}
-
-// ============ Tab 切换 ============
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-  });
-});
-
-// ============ 磁极实验 ============
-const magnetA = document.getElementById('magnetA');
-const magnetB = document.getElementById('magnetB');
-const poleStage = document.getElementById('poleStage');
-const poleResult = document.getElementById('poleResult');
-
-document.getElementById('flipA').addEventListener('click', () => {
-  magnetA.classList.toggle('flip');
-  clearPoleResult();
-});
-document.getElementById('flipB').addEventListener('click', () => {
-  magnetB.classList.toggle('flip');
-  clearPoleResult();
-});
-
-function clearPoleResult() {
-  poleStage.classList.remove('attract', 'repel');
-  poleResult.textContent = '';
-  poleResult.className = '';
-}
-
-document.getElementById('poleTestBtn').addEventListener('click', () => {
-  // magnetA 靠近 magnetB 的那一端（magnetA 的右端／magnetB 的左端）
-  // 没翻转时 N 在左 S 在右；翻转后顺序互换
-  const aFacing = magnetA.classList.contains('flip') ? 'N' : 'S'; // A 的右端
-  const bFacing = magnetB.classList.contains('flip') ? 'S' : 'N'; // B 的左端
-
-  clearPoleResult();
-  if (aFacing === bFacing) {
-    poleStage.classList.add('repel');
-    poleResult.textContent = '💥 同极相斥！两个磁铁被推开了';
-    poleResult.classList.add('repel-text');
-  } else {
-    poleStage.classList.add('attract');
-    poleResult.textContent = '🧲 异极相吸！两个磁铁贴在一起了';
-    poleResult.classList.add('attract-text');
-  }
-});
+const ICONS={nail:'<path d="M12 4v15M9 4h6M9 19h6"/>',clip:'<path d="M9 8v8a3 3 0 0 0 6 0V7a4 4 0 0 0-8 0v10a5 5 0 0 0 10 0V8"/>',washer:'<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/>',bolt:'<path d="m8 4 8 8-4 4-8-8zM4 8l4-4M12 20l4-4"/>',foil:'<path d="m5 6 14 3-3 10-14-3zM8 10l8 1"/>',wire:'<path d="M4 17c5-9 11 9 16-1"/>',ruler:'<path d="M5 5h14v14H5zM9 5v4M13 5v4M17 5v4"/>',stick:'<path d="m7 19 10-14 2 1L9 20z"/>',marble:'<circle cx="12" cy="12" r="8"/><path d="M7 8c4 1 5 6 10 5"/>'};
+let predictions={}, tested={}, currentStep='predict', dragging=false;
+const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
+function icon(type){return '<svg class="object-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICONS[type]+'</svg>'}
+function objectCard(item,mode){return '<div class="object-name">'+icon(item.type)+'<div>'+item.name+'<span class="material">'+item.material+'</span></div></div>'}
+function renderPredictions(){ $('#predictGrid').innerHTML=ITEMS.map(i=>'<div class="predict-card">'+objectCard(i)+'<div class="choice" role="group" aria-label="预测 '+i.name+'"><button data-predict="'+i.id+'" data-value="yes" aria-pressed="'+(predictions[i.id]==='yes')+'">会吸引</button><button data-predict="'+i.id+'" data-value="no" aria-pressed="'+(predictions[i.id]==='no')+'">不会</button></div></div>').join(''); $$('#predictGrid button').forEach(b=>b.addEventListener('click',()=>{predictions[b.dataset.predict]=b.dataset.value;$$('[data-predict="'+b.dataset.predict+'"]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.value===b.dataset.value)); updateProgress()})) }
+function renderObjects(){ $('#objectGrid').innerHTML=ITEMS.map(i=>'<button class="test-object '+(tested[i.id]?'tested '+(tested[i.id].correct?'correct':'incorrect'):'')+'" data-test="'+i.id+'" '+(tested[i.id]?'disabled':'')+'>'+objectCard(i)+'</button>').join('');$$('[data-test]').forEach(b=>b.addEventListener('click',()=>testItem(b.dataset.test)))}
+function updateProgress(){const p=Object.keys(predictions).length,e=Object.keys(tested).length,c=$$('.check-list input:checked').length;const total=p+e+c;const percent=Math.round(total/23*100);$('#progressText').textContent='已完成 '+(p+e+c)+' / 23';$('#meterBar').style.width=percent+'%';$('#sidePercent').textContent=percent+'%';$('#sideLabel').textContent=currentStep==='predict'?'正在作出预测':currentStep==='experiment'?'正在寻找证据':currentStep==='check'?'准备生成报告':'继续完成学习流程';$('#toExperiment').disabled=p<ITEMS.length;$('#toRecord').disabled=e<ITEMS.length}
+function showStep(step){currentStep=step;$$('.step').forEach(x=>x.classList.toggle('active',x.id==='step-'+step));$$('.flow-step').forEach(x=>x.classList.toggle('active',x.dataset.flow===step));const copy={predict:['预测：你认为会怎样？','先选择每件物体的预测，测试前保留自己的想法。'],experiment:['实验：寻找证据','点击物体测试，观察磁铁是否吸引它。'],record:['记录：整理证据','对照预测与结果，看看哪些想法需要更新。'],explain:['解释：说出原因','把观察到的现象和材料、磁极规律连起来。'],check:['检查：完成学习报告','勾选你已经掌握的内容，看看自己的进步。']}[step];$('#stepHeading').textContent=copy[0];$('#stepSub').textContent=copy[1];updateProgress();window.scrollTo({top:document.querySelector('.workspace').offsetTop-12,behavior:'smooth'})}
+function testItem(id){if(tested[id])return;const item=ITEMS.find(i=>i.id===id),correct=predictions[id]===(item.magnetic?'yes':'no');tested[id]={correct,magnetic:item.magnetic};const f=$('#experimentFeedback');f.className='feedback '+(item.magnetic?'good':'');f.innerHTML=item.magnetic?'<strong>'+item.name+'被吸引了。</strong> 因为它的材料是'+item.material+'，会被磁铁吸引。': '<strong>'+item.name+'没有被吸引。</strong> '+item.material+'不会被磁铁吸引。';renderObjects();updateLabProgress()}
+function renderRecord(){const rows=ITEMS.map(i=>{const t=tested[i.id];return '<tr><td>'+i.name+'<br><small>'+i.material+'</small></td><td>'+(predictions[i.id]==='yes'?'会':'不会')+'</td><td>'+(t.magnetic?'被吸引':'没有被吸引')+'</td><td>'+(t.correct?'相符':'需要修正')+'</td></tr>'}).join('');$('#recordContent').innerHTML='<table class="record-table"><thead><tr><th>物体</th><th>预测</th><th>结果</th><th>比较</th></tr></thead><tbody>'+rows+'</tbody></table>'}
+$('#toExperiment').addEventListener('click',()=>{renderObjects();showStep('experiment')});$('#backPredict').addEventListener('click',()=>showStep('predict'));$('#toRecord').addEventListener('click',()=>{renderRecord();showStep('record')});$('#toExplain').addEventListener('click',()=>showStep('explain'));$('#toCheck').addEventListener('click',()=>showStep('check'));$$('.check-list input').forEach(x=>x.addEventListener('change',updateLabProgress));$$('.switch [data-mode]').forEach(b=>b.addEventListener('click',()=>{$$('.switch [data-mode]').forEach(x=>x.classList.toggle('active',x===b));document.body.dataset.mode=b.dataset.mode;$('#stepSub').textContent=b.dataset.mode==='solo'?'你可以按自己的速度完成每一步，随时回看解释。':'先选择每件物体的预测，测试前保留自己的想法。'}));
+const drag=$('#dragMagnet');drag.addEventListener('pointerdown',e=>{dragging=true;drag.setPointerCapture(e.pointerId)});drag.addEventListener('pointermove',e=>{if(!dragging)return;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-test]');if(target&&!target.disabled)testItem(target.dataset.test)});drag.addEventListener('pointerup',e=>{dragging=false;drag.releasePointerCapture(e.pointerId)});drag.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const first=ITEMS.find(i=>!tested[i.id]);if(first)testItem(first.id)}});
+let poleState={prediction:null,aFlip:false,bFlip:false,tested:false,result:null};let strengthState={prediction:null,tested:false,result:null};let utilityChoice=false,shapeChoice=false;
+const strengthModule=document.querySelectorAll('.experiment-module')[2];strengthModule.innerHTML='<h4>C · 磁力强弱比较</h4><p>保持相同距离，先预测：磁铁 A 还是磁铁 B 较强？</p><div class="module-controls" role="group" aria-label="磁力强弱预测"><button data-strength-predict="A" aria-pressed="false">我预测 A 较强</button><button data-strength-predict="B" aria-pressed="false">我预测 B 较强</button><button id="testStrength">比较回形针数量</button></div><div class="strength-meter"><div><div class="strength-bar" id="nearBar"></div><span class="strength-label">磁铁 A：2 个</span></div><div><div class="strength-bar" id="farBar"></div><span class="strength-label">磁铁 B：5 个</span></div></div><div class="module-result" id="strengthResult" aria-live="polite">等待你的预测。</div>';
+const modules=$$('.experiment-module');modules.forEach((m,i)=>{m.classList.add('module-step');if(i===0)m.classList.add('revealed')});const revealButton=document.createElement('button');revealButton.className='secondary guide-only';revealButton.id='revealNext';revealButton.textContent='老师揭示下一实验站';$('.experiment-modules').before(revealButton);let revealed=1;revealButton.addEventListener('click',()=>{if(revealed<modules.length){modules[revealed].classList.add('revealed');revealed++;revealButton.textContent=revealed===modules.length?'三站已揭示':'老师揭示下一实验站'}else{revealButton.textContent='三站已揭示'}});
+function moduleComplete(){return Object.keys(tested).length===ITEMS.length&&poleState.tested&&strengthState.tested}
+function updateLabProgress(){const p=Object.keys(predictions).length,e=Object.keys(tested).length,c=$$('.check-list input:checked').length;const material=Object.values(tested).filter(x=>x.correct).length>=7,pole=poleState.tested&&poleState.prediction===poleState.result,strength=strengthState.tested&&strengthState.result==='B';const completed=p+e+c+(poleState.tested?1:0)+(strengthState.tested?1:0)+(utilityChoice?1:0)+(shapeChoice?1:0);const percent=Math.round(completed/27*100);$('#progressText').textContent='已完成 '+completed+' / 27';$('#meterBar').style.width=percent+'%';$('#sidePercent').textContent=percent+'%';$('#sideLabel').textContent=currentStep==='predict'?'正在作出预测':currentStep==='experiment'?'正在寻找证据':currentStep==='check'?'准备生成报告':'继续完成学习流程';$('#toExperiment').disabled=p<ITEMS.length;$('#toRecord').disabled=!moduleComplete();$('#reportBtn').disabled=!(material&&pole&&strength&&utilityChoice&&shapeChoice)}
+function updateProgress(){updateLabProgress()}
+function poleFacing(){const a=poleState.aFlip?'N':'S',b=poleState.bFlip?'S':'N';return a===b?'repel':'attract'}
+$$('[data-pole-predict]').forEach(b=>b.addEventListener('click',()=>{poleState.prediction=b.dataset.polePredict;$$('[data-pole-predict]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#poleResult').textContent='预测已记录。现在可以翻转磁铁或开始测试。';updateLabProgress()}));$('#flipPoleA').addEventListener('click',()=>{poleState.aFlip=!poleState.aFlip;$('#poleA').classList.toggle('flip',poleState.aFlip)});$('#flipPoleB').addEventListener('click',()=>{poleState.bFlip=!poleState.bFlip;$('#poleB').classList.toggle('flip',poleState.bFlip)});$('#testPole').addEventListener('click',()=>{if(!poleState.prediction){$('#poleResult').textContent='请先选择“相吸”或“相斥”的预测。';return}const result=poleFacing();poleState.tested=true;poleState.result=result;$('#poleA').classList.remove('moving-left','moving-right');$('#poleB').classList.remove('moving-left','moving-right');$('#poleA').classList.add(result==='attract'?'moving-left':'moving-right');$('#poleB').classList.add(result==='attract'?'moving-right':'moving-left');$('#poleResult').textContent=result==='attract'?'结果：异极相吸，两个磁铁向中间移动。':'结果：同极相斥，两个磁铁向外推开。';updateLabProgress()});
+$$('[data-strength-predict]').forEach(b=>b.addEventListener('click',()=>{strengthState.prediction=b.dataset.strengthPredict;$$('[data-strength-predict]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#strengthResult').textContent='预测已记录。保持相同距离，比较 A 和 B。';updateLabProgress()}));$('#testStrength').addEventListener('click',()=>{if(!strengthState.prediction){$('#strengthResult').textContent='请先选择 A 或 B 哪块较强。';return}strengthState.tested=true;strengthState.result='B';$('#nearBar').classList.remove('tall');$('#farBar').classList.add('tall');$('#strengthResult').textContent='结果：同距离下，磁铁 A 吸起 2 个、磁铁 B 吸起 5 个；能吸起更多回形针的磁铁磁力较强。';updateLabProgress()});
+$$('[data-utility]').forEach(b=>b.addEventListener('click',()=>{const correct=b.dataset.utility==='compass';utilityChoice=correct;$$('[data-utility]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#utilityResult').textContent=correct?'正确：指南针会利用磁铁的指向性。':'再想一想：量杯和温度计不使用磁铁。';updateLabProgress()}));$$('[data-shape]').forEach(b=>b.addEventListener('click',()=>{const correct=b.dataset.shape==='ring';shapeChoice=correct;$$('[data-shape]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('#shapeResult').textContent=correct?'正确：环形磁铁中间有孔。':'这不是环形磁铁，请继续比较形状。';updateLabProgress()}));$('#reportBtn').addEventListener('click',()=>{const material=Object.values(tested).filter(x=>x.correct).length>=7, pole=poleState.tested&&poleState.prediction===poleState.result, strength=strengthState.tested&&strengthState.result==='B', use=utilityChoice, shape=shapeChoice;$('#report').hidden=false;$('#reportSummary').textContent='报告依据来自五项操作证据，不只来自反思勾选。';$('#evidenceReport').innerHTML='<p>材料预测：'+(material?'已掌握':'待复习')+'（'+Object.values(tested).filter(x=>x.correct).length+' / '+ITEMS.length+' 次预测相符）</p><p>磁极规律：'+(pole?'已掌握':'待复习')+'（实际运动：'+(poleState.result==='attract'?'相吸':'相斥')+'）</p><p>磁力强弱：'+(strength?'已掌握':'待复习')+'（同距离 A=2、B=5，B 较强）</p><p>磁铁用途：'+(use?'已掌握':'待完成')+'（指南针辨认）</p><p>磁铁形状：'+(shape?'已掌握':'待完成')+'（环形辨认）</p>';$('#mastery').textContent=[material,pole,strength,use,shape].filter(Boolean).length===5?'五项证据都已完成。':'还有证据项目需要完成。';updateLabProgress()});$('#restart').addEventListener('click',()=>{poleState={prediction:null,aFlip:false,bFlip:false,tested:false,result:null};strengthState={prediction:null,tested:false,result:null};utilityChoice=false;shapeChoice=false;$('#poleA').className='lab-magnet';$('#poleB').className='lab-magnet';$('#nearBar').classList.remove('tall');$('#farBar').classList.remove('tall');$('#poleResult').textContent='等待你的预测。';$('#strengthResult').textContent='等待你的预测。';$('#utilityResult').textContent='请选择一个。';$('#shapeResult').textContent='请选择一个。';$('#report').hidden=true;$('#reportBtn').disabled=true;$('#reportSummary').textContent='';$('#mastery').textContent='';$('#evidenceReport').innerHTML='';$$('[data-pole-predict],[data-strength-predict],[data-utility],[data-shape]').forEach(x=>{x.setAttribute('aria-pressed','false')});modules.forEach((m,i)=>m.classList.toggle('revealed',i===0));revealed=1;revealButton.textContent='老师揭示下一实验站';predictions={};tested={};$$('.check-list input').forEach(x=>x.checked=false);renderPredictions();showStep('predict');updateLabProgress()});
+renderPredictions();updateLabProgress();
 </script>
 </body>
 </html>
